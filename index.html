@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creadoras Twins</title>
+<style>
+/* Layout: una tarjeta a la vez, centrada, con pestañas arriba y acciones grandes abajo. Monocromo de marca. */
+:root{
+  --bg:#f6f6f4; --surface:#ffffff; --ink:#111111; --muted:#6b6b68; --line:#dcdcd8;
+  --yes:#1d6b43; --no:#a3271f; --warn:#8a5a00; --warn-bg:#fff4d6;
+  --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#121212;--surface:#1c1c1b;--ink:#f2f2ef;--muted:#a3a39e;--line:#34342f;--yes:#6fcf97;--no:#f08a80;--warn:#f2c462;--warn-bg:#3a2e10;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#121212;--surface:#1c1c1b;--ink:#f2f2ef;--muted:#a3a39e;--line:#34342f;--yes:#6fcf97;--no:#f08a80;--warn:#f2c462;--warn-bg:#3a2e10;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--font)}
+.wrap{max-width:560px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:100%}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:15px;letter-spacing:.14em;text-transform:uppercase;margin:0;font-weight:700}
+.head-actions{display:flex;gap:8px}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--ink);background:var(--surface);color:var(--ink);padding:10px 14px;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button.solid,.btn.solid{background:var(--ink);color:var(--surface)}
+button.ghost{border-color:var(--line);color:var(--muted);padding:8px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink);border-radius:2px;overflow:hidden}
+.tabs button{border:0;border-right:1px solid var(--ink);border-radius:0;padding:10px 6px;font-size:13px;line-height:1.2;flex-direction:column}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.tabs .n{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.banner{padding:10px 12px;border:1px solid var(--line);background:var(--warn-bg);color:var(--warn);font-size:14px;border-radius:2px}
+.banner.err{color:var(--no)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:18px;display:flex;flex-direction:column;gap:14px;touch-action:pan-y;transition:transform .15s}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+.who{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.name{font-size:24px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.handle{color:var(--muted);overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);padding:3px 8px;border-radius:999px;color:var(--muted)}
+.chip.strong{border-color:var(--ink);color:var(--ink)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+input,select{font:inherit;padding:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;width:100%}
+.decide{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.decide button{padding:16px;font-size:17px;font-weight:700}
+.decide .no{border-color:var(--no);color:var(--no)}
+.decide .yes{background:var(--yes);border-color:var(--yes);color:#fff}
+.msgs{display:flex;flex-direction:column;gap:10px}
+.msg{border:1px solid var(--line);border-radius:2px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.msg .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.reel{width:100%;max-width:340px;height:600px;border:1px solid var(--line);border-radius:2px;align-self:center;background:var(--bg)}
+.empty{padding:40px 12px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:2px}
+.pos{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.hint{font-size:13px;color:var(--muted)}
+dialog{border:1px solid var(--ink);border-radius:2px;padding:18px;width:min(92vw,440px);background:var(--surface);color:var(--ink)}
+dialog form{display:flex;flex-direction:column;gap:12px}
+dialog h2{margin:0;font-size:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Creadoras Twins</h1>
+    <div class="head-actions">
+      <button class="ghost" id="logout" type="button">Cambiar llave</button>
+      <button class="ghost" id="refresh" type="button">Actualizar</button>
+      <button id="add" type="button">+ Candidata</button>
+    </div>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="found" aria-selected="true"><span class="n" id="n-found">0</span>Encontradas</button>
+    <button type="button" role="tab" data-tab="applied" aria-selected="false"><span class="n" id="n-applied">0</span>Aplicaron</button>
+    <button type="button" role="tab" data-tab="follow" aria-selected="false"><span class="n" id="n-follow">0</span>Volver a contactar</button>
+  </div>
+  <main id="main"></main>
+  <p class="hint" id="foot">En computadora: flecha derecha aprueba, flecha izquierda descarta.</p>
+</div>
+
+<dialog id="dlg">
+  <form id="addform">
+    <h2>Agregar candidata</h2>
+    <label>Usuario o liga de Instagram<input id="f-ig" required autocomplete="off" placeholder="@usuario o https://instagram.com/usuario"></label>
+    <label>Nombre<input id="f-name" autocomplete="off" placeholder="Como le dirías en el mensaje"></label>
+    <label>Perfil<select id="f-profile"></select></label>
+    <label>Liga de un reel donde habla a cámara<input id="f-reel" autocomplete="off" placeholder="https://www.instagram.com/reel/..."></label>
+    <label>¿De qué habla ese reel?<input id="f-topic" autocomplete="off" placeholder="tu rutina de skincare"></label>
+    <div class="banner err" id="f-err" hidden></div>
+    <div class="decide"><button type="button" id="f-cancel">Cancelar</button><button class="solid" type="submit">Agregar</button></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+var API="https://api.notion.com/v1",NV="2025-09-03",KEY="creadoras-twins-llave";
+var DS_CREADORAS="4227b5e8-96d9-8142-827a-000b79d06073";
+var DS_PERFILES="4227b5e8-96d9-8163-b1c9-000b2602cfd2";
+var FORM_URL=""; // se llena cuando el formulario esté abierto
+var OFFER=["Hola {nombre}, te escribo de parte del equipo de influencer marketing de Twins & Icons. Gracias por llenar el formulario 🙌",
+"Estamos super emocionados de trabajar contigo. Te cuento un poco sobre la propuesta:\n• 3 videos de 30 a 45 segundos, cada uno con 3 inicios distintos\n• Te mandamos 3 perfumes de la marca (valen cerca de $3,000)\n• Los videos son para pautar en Meta Ads de Twins & Icons\n¿Qué opinas?"];
+
+var token="", live=false, rows=[], profiles={}, tab="found", idx=0, reveal=null, busy=false;
+var $=function(id){return document.getElementById(id)};
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function unesc(s){return typeof s==="string"?s.replace(/\\([\\_*~`\[\]()#>+\-.!|{}])/g,"$1"):s}
+function firstUrl(s){if(!s)return"";var m=String(s).match(/https:\/\/[^\s)\]"]+/);return m?m[0]:""}
+function reelCode(u){var m=String(u||"").match(/instagram\.com\/(?:[^\/]+\/)?(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/);return m?m[1]:""}
+function hex(u){var m=String(u||"").replace(/-/g,"").match(/[0-9a-f]{32}/i);return m?m[0].toLowerCase():""}
+function yes(v){return v==="__YES__"||v===true}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function daysSince(iso){if(!iso)return 0;var a=new Date(iso.slice(0,10)+"T00:00:00"),b=new Date(today()+"T00:00:00");return Math.round((b-a)/864e5)}
+function banner(msg,err){var b=$("banner");if(!msg){b.hidden=true;return}b.textContent=msg;b.className="banner"+(err?" err":"");b.hidden=false}
+function api(method,path,body){
+  return fetch(API+path,{method:method,headers:{"Authorization":"Bearer "+token,"Notion-Version":NV,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined})
+    .then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(r.status===401?"la llave no es válida":r.status===404?"la llave no tiene acceso a la página de Creadoras (falta agregar la conexión en Notion)":(j&&j.message)||("error "+r.status));e.status=r.status;throw e}return j})});
+}
+function queryAll(ds){var out=[];function page(cur){return api("POST","/data_sources/"+ds+"/query",cur?{page_size:100,start_cursor:cur}:{page_size:100}).then(function(j){out=out.concat(j.results||[]);return j.has_more&&j.next_cursor?page(j.next_cursor):out})}return page()}
+function errText(e){return (e&&(e.message||e.code))||"error desconocido"}
+function txt(p){if(!p)return"";var a=p.title||p.rich_text;return Array.isArray(a)?a.map(function(t){return t.plain_text||""}).join(""):""}
+function sel(p){return p&&p.select?p.select.name:""}
+function toRest(props){var o={};Object.keys(props).forEach(function(k){var v=props[k];
+  if(k==="Nombre")o[k]={title:[{text:{content:String(v)}}]};
+  else if(k==="Usuario IG"||k==="Tema del reel")o[k]={rich_text:v?[{text:{content:String(v)}}]:[]};
+  else if(k==="Etapa"||k==="Origen"||k==="Carril")o[k]={select:{name:v}};
+  else if(k==="Seguimientos")o[k]={number:Number(v)};
+  else if(k==="Reel de muestra")o[k]={url:v||null};
+  else if(k==="date:Fecha DM:start")o["Fecha DM"]={date:{start:v}};
+  else if(k==="Perfil")o[k]={relation:v.map(function(id){return {id:id}})};
+});return o}
+function norm(pg){
+  var r=pg.properties||{},rel=(r["Perfil"]&&r["Perfil"].relation)||[];
+  var samples=txt(r["Videos de muestra"]).match(/https:\/\/[^\s)\]"]+/g)||[];
+  return {id:hex(pg.id),name:txt(r["Nombre"]),ig:txt(r["Usuario IG"]).trim().replace(/^@/,""),
+    stage:sel(r["Etapa"]),origin:sel(r["Origen"]),profile:rel[0]?hex(rel[0].id):"",reel:firstUrl(r["Reel de muestra"]&&r["Reel de muestra"].url),topic:txt(r["Tema del reel"]),
+    followers:r["Seguidores"]&&r["Seguidores"].number,dm:(r["Fecha DM"]&&r["Fecha DM"].date&&r["Fecha DM"].date.start)||"",follows:Number((r["Seguimientos"]&&r["Seguimientos"].number)||0),
+    age:r["Edad"]&&r["Edad"].number,city:txt(r["Ciudad y zona"]),partner:!!(r["Pareja"]&&r["Pareja"].checkbox),kids:!!(r["Hijos"]&&r["Hijos"].checkbox),
+    colab:sel(r["Abierta a colab"]),invoice:sel(r["Emite factura"]),samples:samples.filter(function(u,i,a){return a.indexOf(u)===i}),
+    brands:txt(r["Marcas con las que ha trabajado"]),wa:String((r["WhatsApp"]&&r["WhatsApp"].phone_number)||"").replace(/[^\d]/g,"")}
+}
+function sample(){
+  profiles={p1:{name:"Mujer 25 a 34",dm:"Hola {nombre}, ¿cómo estás? Soy Dani, de Twins & Icons.\n\nVi tu video de {tema del reel} y me gustó mucho cómo hablas a cámara 🌟\n\n¿Te interesaría trabajar con nosotros? 🤍",fu:"Hola {nombre}, te escribí hace unos días 😊\n===\n{nombre}, último mensaje 🙈\n\nAquí el formulario: {link del formulario}"}};
+  rows=[{id:"a",name:"Ejemplo Uno",ig:"ejemplo.uno",stage:"Encontrada",origin:"Equipo",profile:"p1",reel:"https://www.instagram.com/reel/DNvmKMx0AUg/",topic:"tu colección de perfumes",followers:5200,follows:0,samples:[]},
+        {id:"b",name:"Ejemplo Dos",ig:"ejemplo.dos",stage:"Aplicó",origin:"Convocatoria",profile:"p1",age:31,city:"CDMX, Roma",partner:true,kids:false,colab:"Sí",invoice:"No",samples:["https://www.instagram.com/"],follows:0,wa:"5215500000000"},
+        {id:"c",name:"Ejemplo Tres",ig:"ejemplo.tres",stage:"Aprobada (DM enviado)",origin:"Búsqueda",profile:"p1",dm:"2020-01-01",follows:0,samples:[]}];
+}
+function load(){
+  if(!live){sample();banner("Datos de ejemplo. Pega tu llave de Notion para ver las creadoras reales.");render();return Promise.resolve()}
+  banner("Cargando…");
+  return Promise.all([queryAll(DS_PERFILES),queryAll(DS_CREADORAS)]).then(function(res){
+    profiles={};res[0].forEach(function(pg){var p=pg.properties||{};if(p["Activo"]&&p["Activo"].checkbox===false)return;profiles[hex(pg.id)]={name:txt(p["Perfil"]),dm:txt(p["Mensaje de DM"]),fu:txt(p["Mensaje de seguimiento"])}});
+    rows=res[1].map(norm);banner(null);render();
+  }).catch(function(e){if(e.status===401){live=false;token="";try{localStorage.removeItem(KEY)}catch(x){}}
+    banner("No pude leer Notion: "+errText(e)+".",true);rows=[];render()});
+}
+function list(t){
+  if(t==="found")return rows.filter(function(r){return r.stage==="Encontrada"});
+  if(t==="applied")return rows.filter(function(r){return r.stage==="Aplicó"});
+  return rows.filter(function(r){if(r.stage!=="Aprobada (DM enviado)")return false;var d=daysSince(r.dm);return (r.follows===0&&d>=4)||(r.follows===1&&d>=8)||(r.follows>=2&&d>=12)});
+}
+function fill(text,r){
+  var first=(r.name||"").trim().split(/\s+/)[0]||"";
+  var t=text;
+  if(!r.topic)t=t.replace(/Vi tu video de \{tema del reel\} y/,"Vi tus videos y");
+  t=t.replace(/\{tema del reel\}/g,r.topic||"").replace(/\{nombre\}/g,first);
+  if(FORM_URL)t=t.replace(/\{link del formulario\}|\{link\}/g,FORM_URL);
+  return t.replace(/Hola ,/,"Hola,").trim();
+}
+function parts(text){return text.split(/\n\s*\n/).map(function(s){return s.trim()}).filter(Boolean)}
+function msgBlock(label,text){
+  var m=el("div","msg"),row=el("div","row");row.appendChild(el("span","k",label));
+  var b=el("button","ghost","Copiar");b.type="button";
+  b.addEventListener("click",function(){var done=function(){b.textContent="Copiado";setTimeout(function(){b.textContent="Copiar"},1500)};
+    try{navigator.clipboard.writeText(text).then(done,function(){b.textContent="Selecciona y copia a mano"})}catch(e){b.textContent="Selecciona y copia a mano"}});
+  row.appendChild(b);m.appendChild(row);m.appendChild(el("p",null,text));return m;
+}
+function link(href,text,solid){var a=el("a","btn"+(solid?" solid":""),text);a.href=href;a.target="_blank";a.rel="noopener";return a}
+function update(r,props,local){
+  if(busy)return;busy=true;var before={};Object.keys(local).forEach(function(k){before[k]=r[k]});Object.assign(r,local);reveal=null;render();
+  var p=live?api("PATCH","/pages/"+r.id,{properties:toRest(props)}):Promise.resolve();
+  p.then(function(){busy=false;banner(live?null:"Datos de ejemplo: el cambio no se guardó en Notion.");render()},
+         function(e){busy=false;Object.assign(r,before);banner("No se guardó en Notion: "+errText(e)+". Intenta otra vez.",true);render()});
+}
+function render(){
+  ["found","applied","follow"].forEach(function(t){$("n-"+t).textContent=list(t).length});
+  document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-selected",String(b.dataset.tab===tab))});
+  var main=$("main");main.textContent="";var items=list(tab);
+  if(idx>=items.length)idx=Math.max(0,items.length-1);
+  if(!items.length){main.appendChild(el("div","empty",tab==="found"?"No hay candidatas por revisar. Agrega una con el botón + Candidata.":tab==="applied"?"Nadie ha llenado el formulario todavía.":"Nadie por recontactar hoy."));return}
+  var r=items[idx],prof=profiles[r.profile]||{name:"Sin perfil",dm:"",fu:""};
+  var pos=el("div","pos");pos.appendChild(el("span",null,(idx+1)+" de "+items.length));
+  var nav=el("span");var pv=el("button","ghost","Anterior"),nx=el("button","ghost","Siguiente");pv.type=nx.type="button";
+  pv.disabled=idx===0;nx.disabled=idx>=items.length-1;pv.onclick=function(){idx--;reveal=null;render()};nx.onclick=function(){idx++;reveal=null;render()};
+  nav.appendChild(pv);nav.appendChild(document.createTextNode(" "));nav.appendChild(nx);pos.appendChild(nav);main.appendChild(pos);
+  var c=el("div","card");c.id="card";
+  var who=el("div","who");who.appendChild(el("div","name",r.name||"@"+r.ig));if(r.ig)who.appendChild(el("div","handle","@"+r.ig));c.appendChild(who);
+  var chips=el("div","chips");chips.appendChild(el("span","chip strong",prof.name));if(r.origin)chips.appendChild(el("span","chip",r.origin));
+  if(r.followers)chips.appendChild(el("span","chip",Number(r.followers).toLocaleString("es-MX")+" seguidores"));c.appendChild(chips);
+  var links=el("div","links");
+  if(r.reel)links.appendChild(link(r.reel,"Abrir reel en Instagram",true));
+  if(r.ig)links.appendChild(link("https://www.instagram.com/"+encodeURIComponent(r.ig)+"/","Ver perfil completo"));
+  r.samples.forEach(function(u,i){links.appendChild(link(u,"Video de muestra "+(i+1)))});
+  var code=reelCode(r.reel||r.samples[0]);
+  if(code&&reveal!==r.id){var f=document.createElement("iframe");f.className="reel";f.src="https://www.instagram.com/reel/"+code+"/embed/";f.title="Reel de "+(r.name||r.ig);f.loading="lazy";f.setAttribute("allowfullscreen","");f.setAttribute("scrolling","no");c.appendChild(f);
+    c.appendChild(el("p","hint","Si el video no se reproduce aquí, Instagram no lo permite para ese reel: ábrelo con el botón."))}
+  if(links.children.length)c.appendChild(links);
+
+  if(tab==="applied"){
+    var dl=el("dl");[["Edad",r.age],["Ciudad y zona",r.city],["Pareja",r.partner?"Sí":"No"],["Hijos",r.kids?"Sí":"No"],["Pauta en colaboración",r.colab],["Emite factura",r.invoice],["Marcas previas",r.brands]].forEach(function(p){if(p[1]==null||p[1]==="")return;dl.appendChild(el("dt",null,p[0]));dl.appendChild(el("dd",null,String(p[1])))});
+    c.appendChild(dl);
+  }
+  if(tab==="found"&&reveal!==r.id){
+    var lab=el("label",null,"¿De qué habla su reel? Va dentro del segundo mensaje");var inp=el("input");inp.id="topic";inp.value=r.topic||"";inp.placeholder="tu rutina de la mañana";
+    inp.addEventListener("input",function(){r.topic=inp.value});lab.appendChild(inp);c.appendChild(lab);
+  }
+  if(reveal===r.id){
+    var box=el("div","msgs"),texts,labelBase="Mensaje ";
+    if(tab==="found")texts=parts(fill(prof.dm,r));
+    else if(tab==="applied"){texts=OFFER.map(function(t){return fill(t,r)})}
+    else{var seg=prof.fu.split(/\n===\n/);texts=parts(fill(seg[Math.min(r.follows,seg.length-1)]||"",r))}
+    if(!texts.length)box.appendChild(el("div","banner err","Este perfil no tiene mensaje cargado en Notion."));
+    texts.forEach(function(t,i){box.appendChild(msgBlock(labelBase+(i+1)+" de "+texts.length,t))});
+    if(texts.join(" ").indexOf("{link")>=0)box.appendChild(el("div","banner","Falta la liga del formulario: todavía no está abierto. Pégala a mano donde dice {link del formulario}."));
+    c.appendChild(box);
+    var go=el("div","links");
+    if(tab==="applied"){if(r.wa)go.appendChild(link("https://wa.me/"+r.wa,"Abrir su WhatsApp",true));else go.appendChild(el("span","hint","No dejó WhatsApp en el formulario."))}
+    else if(r.ig)go.appendChild(link("https://ig.me/m/"+encodeURIComponent(r.ig),"Abrir su chat de Instagram",true));
+    c.appendChild(go);
+    var d2=el("div","decide"),back=el("button",null,"Regresar"),sent=el("button","solid","Ya los mandé");back.type=sent.type="button";
+    back.onclick=function(){reveal=null;render()};
+    sent.onclick=function(){
+      if(tab==="found")update(r,{"Etapa":"Aprobada (DM enviado)","date:Fecha DM:start":today(),"date:Fecha DM:is_datetime":0,"Seguimientos":0,"Tema del reel":r.topic||""},{stage:"Aprobada (DM enviado)",dm:today(),follows:0});
+      else if(tab==="applied")update(r,{"Etapa":"Aprobada con formulario"},{stage:"Aprobada con formulario"});
+      else update(r,{"Seguimientos":r.follows+1},{follows:r.follows+1});
+    };
+    d2.appendChild(back);d2.appendChild(sent);c.appendChild(d2);
+  }else{
+    var d=el("div","decide"),no=el("button","no"),ok=el("button","yes");no.type=ok.type="button";no.id="btn-no";ok.id="btn-yes";
+    if(tab==="follow"){
+      var last=r.follows>=2;
+      c.appendChild(el("p","hint","Primer mensaje hace "+daysSince(r.dm)+" días · "+r.follows+" de 2 seguimientos enviados"));
+      no.textContent="Pasar a Sin respuesta";ok.textContent=last?"Ya contestó":"Ver seguimiento";
+      no.onclick=function(){update(r,{"Etapa":"Sin respuesta"},{stage:"Sin respuesta"})};
+      ok.onclick=last?function(){banner("Si ya contestó, mándale el formulario. Saldrá de esta lista cuando lo llene.")}:function(){reveal=r.id;render()};
+    }else{
+      no.textContent="No";ok.textContent=tab==="found"?"Aprobar y ver mensajes":"Aprobar y ver oferta";
+      no.onclick=function(){update(r,{"Etapa":"Descartada"},{stage:"Descartada"})};
+      ok.onclick=function(){reveal=r.id;render()};
+    }
+    d.appendChild(no);d.appendChild(ok);c.appendChild(d);
+  }
+  main.appendChild(c);swipe(c);
+}
+function swipe(c){
+  var x0=null,dx=0;
+  c.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"||e.target.closest("button,a,input,.msg"))return;x0=e.clientX;dx=0});
+  c.addEventListener("pointermove",function(e){if(x0===null)return;dx=e.clientX-x0;if(Math.abs(dx)>12)c.style.transform="translateX("+dx+"px) rotate("+(dx/40)+"deg)"});
+  var end=function(){if(x0===null)return;x0=null;c.style.transform="";if(reveal)return;if(dx>110){var y=$("btn-yes");if(y)y.click()}else if(dx<-110&&tab!=="follow"){var n=$("btn-no");if(n)n.click()}};
+  c.addEventListener("pointerup",end);c.addEventListener("pointercancel",end);
+}
+document.addEventListener("keydown",function(e){
+  if(e.target.closest("input,select,dialog")||reveal)return;
+  if(e.key==="ArrowRight"){var y=$("btn-yes");if(y)y.click()}
+  if(e.key==="ArrowLeft"&&tab!=="follow"){var n=$("btn-no");if(n)n.click()}
+});
+document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){tab=b.dataset.tab;idx=0;reveal=null;render()})});
+$("refresh").addEventListener("click",function(){load()});
+$("logout").addEventListener("click",function(){token="";live=false;try{localStorage.removeItem(KEY)}catch(x){}banner(null);askKey()});
+$("add").addEventListener("click",function(){
+  var s=$("f-profile");s.textContent="";Object.keys(profiles).forEach(function(k){var o=el("option",null,profiles[k].name);o.value=k;s.appendChild(o)});
+  $("f-err").hidden=true;$("addform").reset();$("dlg").showModal();
+});
+$("f-cancel").addEventListener("click",function(){$("dlg").close()});
+$("addform").addEventListener("submit",function(e){
+  e.preventDefault();var err=$("f-err");err.hidden=true;
+  var raw=$("f-ig").value.trim(),m=raw.match(/instagram\.com\/([A-Za-z0-9._]+)/),ig=(m?m[1]:raw).replace(/^@/,"").replace(/\/$/,"");
+  if(!/^[A-Za-z0-9._]{1,30}$/.test(ig)){err.textContent="No reconozco ese usuario. Pega la liga de su perfil o escribe @usuario.";err.hidden=false;return}
+  if(rows.some(function(r){return (r.ig||"").toLowerCase()===ig.toLowerCase()})){err.textContent="@"+ig+" ya está en la base. No se duplicó.";err.hidden=false;return}
+  var reel=firstUrl($("f-reel").value),name=$("f-name").value.trim()||ig,pk=$("f-profile").value,topic=$("f-topic").value.trim();
+  var props={"Nombre":name,"Usuario IG":ig,"Etapa":"Encontrada","Origen":"Equipo","Carril":"UGC","Seguimientos":0};
+  if(reel)props["Reel de muestra"]=reel;if(topic)props["Tema del reel"]=topic;if(pk)props["Perfil"]=[pk];
+  var done=function(id){rows.push({id:id||("tmp"+Date.now()),name:name,ig:ig,stage:"Encontrada",origin:"Equipo",profile:pk,reel:reel,topic:topic,follows:0,samples:[]});$("dlg").close();tab="found";idx=list("found").length-1;render()};
+  if(!live){done();banner("Datos de ejemplo: la candidata no se guardó en Notion.");return}
+  api("POST","/pages",{parent:{type:"data_source_id",data_source_id:DS_CREADORAS},properties:toRest(props)})
+    .then(function(p){done(hex(p&&p.id))},function(x){err.textContent="No se guardó en Notion: "+errText(x);err.hidden=false});
+});
+function askKey(){
+  var main=$("main");main.textContent="";var c=el("div","card");
+  c.appendChild(el("div","name","Pega tu llave de Notion"));
+  c.appendChild(el("p","hint","Es la clave de la conexión Pantalla Creadoras. Se guarda solo en este navegador y no sale de tu dispositivo más que hacia Notion."));
+  var lab=el("label",null,"Llave"),inp=el("input");inp.id="key";inp.type="password";inp.autocomplete="off";inp.placeholder="ntn_…";lab.appendChild(inp);c.appendChild(lab);
+  var d=el("div","decide"),demo=el("button",null,"Ver ejemplo"),go=el("button","solid","Entrar");demo.type=go.type="button";
+  demo.onclick=function(){live=false;load()};
+  go.onclick=function(){var v=inp.value.trim();if(!v)return;token=v;live=true;try{localStorage.setItem(KEY,v)}catch(x){}load().then(function(){if(!live)askKey()})};
+  d.appendChild(demo);d.appendChild(go);c.appendChild(d);main.appendChild(c);
+}
+try{token=localStorage.getItem(KEY)||""}catch(x){}
+if(token){live=true;load().then(function(){if(!live)askKey()})}else{sample();askKey()}
+})();
+</script>
+</body>
+</html>
