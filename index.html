@@ -73,7 +73,7 @@ dialog h2{margin:0;font-size:18px}
   <header>
     <h1>Creadoras Twins</h1>
     <div class="head-actions">
-      <button class="ghost" id="logout" type="button">Cambiar llave</button>
+      <button class="ghost" id="logout" type="button">Salir</button>
       <button class="ghost" id="refresh" type="button">Actualizar</button>
       <button id="add" type="button">+ Candidata</button>
     </div>
@@ -107,6 +107,7 @@ dialog h2{margin:0;font-size:18px}
 var API="https://api.notion.com/v1",NV="2025-09-03",KEY="creadoras-twins-llave";
 var DS_CREADORAS="4227b5e8-96d9-8142-827a-000b79d06073";
 var DS_PERFILES="4227b5e8-96d9-8163-b1c9-000b2602cfd2";
+var ENC=""; // llave de Notion cifrada con la contraseña del equipo; la escribe tools/cifrar-llave.sh
 var FORM_URL=""; // se llena cuando el formulario esté abierto
 var OFFER=["Hola {nombre}, te escribo de parte del equipo de influencer marketing de Twins & Icons. Gracias por llenar el formulario 🙌",
 "Estamos super emocionados de trabajar contigo. Te cuento un poco sobre la propuesta:\n• 3 videos de 30 a 45 segundos, cada uno con 3 inicios distintos\n• Te mandamos 3 perfumes de la marca (valen cerca de $3,000)\n• Los videos son para pautar en Meta Ads de Twins & Icons\n¿Qué opinas?"];
@@ -295,14 +296,27 @@ $("addform").addEventListener("submit",function(e){
   api("POST","/pages",{parent:{type:"data_source_id",data_source_id:DS_CREADORAS},properties:toRest(props)})
     .then(function(p){done(hex(p&&p.id))},function(x){err.textContent="No se guardó en Notion: "+errText(x);err.hidden=false});
 });
+function b64(x){var bin=atob(x),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+function decrypt(pass){
+  var e=JSON.parse(atob(ENC)),enc=new TextEncoder();
+  return crypto.subtle.importKey("raw",enc.encode(pass),"PBKDF2",false,["deriveKey"])
+    .then(function(k){return crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(e.s),iterations:e.n,hash:"SHA-256"},k,{name:"AES-GCM",length:256},false,["decrypt"])})
+    .then(function(k){return crypto.subtle.decrypt({name:"AES-GCM",iv:b64(e.iv)},k,b64(e.c))})
+    .then(function(buf){return new TextDecoder().decode(buf)});
+}
 function askKey(){
-  var main=$("main");main.textContent="";var c=el("div","card");
-  c.appendChild(el("div","name","Pega tu llave de Notion"));
-  c.appendChild(el("p","hint","Es la clave de la conexión Pantalla Creadoras. Se guarda solo en este navegador y no sale de tu dispositivo más que hacia Notion."));
-  var lab=el("label",null,"Llave"),inp=el("input");inp.id="key";inp.type="password";inp.autocomplete="off";inp.placeholder="ntn_…";lab.appendChild(inp);c.appendChild(lab);
+  var main=$("main");main.textContent="";var c=el("div","card"),pw=!!ENC;
+  c.appendChild(el("div","name",pw?"Contraseña del equipo":"Pega tu llave de Notion"));
+  c.appendChild(el("p","hint",pw?"Solo se pide la primera vez en cada celular o computadora.":"Es la clave de la conexión Pantalla Creadoras. Se guarda solo en este navegador."));
+  var lab=el("label",null,pw?"Contraseña":"Llave"),inp=el("input");inp.id="key";inp.type="password";inp.autocomplete=pw?"current-password":"off";lab.appendChild(inp);c.appendChild(lab);
+  var msg=el("div","banner err");msg.hidden=true;c.appendChild(msg);
   var d=el("div","decide"),demo=el("button",null,"Ver ejemplo"),go=el("button","solid","Entrar");demo.type=go.type="button";
   demo.onclick=function(){live=false;load()};
-  go.onclick=function(){var v=inp.value.trim();if(!v)return;token=v;live=true;try{localStorage.setItem(KEY,v)}catch(x){}load().then(function(){if(!live)askKey()})};
+  function enter(t){token=t;live=true;try{localStorage.setItem(KEY,t)}catch(x){}load().then(function(){if(!live)askKey()})}
+  go.onclick=function(){var v=inp.value.trim();if(!v)return;
+    if(!pw){enter(v);return}
+    go.disabled=true;decrypt(v).then(enter,function(){go.disabled=false;msg.textContent="Esa contraseña no es. Revisa mayúsculas y espacios.";msg.hidden=false})};
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter")go.click()});
   d.appendChild(demo);d.appendChild(go);c.appendChild(d);main.appendChild(c);
 }
 try{token=localStorage.getItem(KEY)||""}catch(x){}
