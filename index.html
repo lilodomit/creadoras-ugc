@@ -179,12 +179,15 @@ function fill(text,r){
   return t.replace(/Hola ,/,"Hola,").trim();
 }
 function parts(text){return text.split(/\n\s*\n/).map(function(s){return s.trim()}).filter(Boolean)}
-function msgBlock(label,text){
+function msgBlock(label,text,chat){
   var m=el("div","msg"),row=el("div","row");row.appendChild(el("span","k",label));
   var b=el("button","ghost","Copiar");b.type="button";
   b.addEventListener("click",function(){var done=function(){b.textContent="Copiado";setTimeout(function(){b.textContent="Copiar"},1500)};
     try{navigator.clipboard.writeText(text).then(done,function(){b.textContent="Selecciona y copia a mano"})}catch(e){b.textContent="Selecciona y copia a mano"}});
-  row.appendChild(b);m.appendChild(row);m.appendChild(el("p",null,text));return m;
+  row.appendChild(b);m.appendChild(row);m.appendChild(el("p",null,text));
+  if(chat){var a=el("a","btn solid","Copiar y abrir su chat");a.href=chat+"?text="+encodeURIComponent(text);a.target="_blank";a.rel="noopener";
+    a.addEventListener("click",function(){try{navigator.clipboard.writeText(text)}catch(e){}});m.appendChild(a)}
+  return m;
 }
 function link(href,text,solid){var a=el("a","btn"+(solid?" solid":""),text);a.href=href;a.target="_blank";a.rel="noopener";return a}
 function update(r,props,local,okMsg){
@@ -231,7 +234,8 @@ function render(){
     else if(tab==="applied"){texts=OFFER.map(function(t){return fill(t,r)})}
     else{var seg=prof.fu.split(/\n===\n/);texts=parts(fill(seg[Math.min(r.follows,seg.length-1)]||"",r))}
     if(!texts.length)box.appendChild(el("div","banner err","Este perfil no tiene mensaje cargado en Notion."));
-    texts.forEach(function(t,i){box.appendChild(msgBlock(labelBase+(i+1)+" de "+texts.length,t))});
+    var chatUrl=(tab!=="applied"&&r.ig)?"https://ig.me/m/"+encodeURIComponent(r.ig):"";
+    texts.forEach(function(t,i){box.appendChild(msgBlock(labelBase+(i+1)+" de "+texts.length,t,chatUrl))});
     if(texts.join(" ").indexOf("{link")>=0)box.appendChild(el("div","banner","Falta la liga del formulario: todavía no está abierto. Pégala a mano donde dice {link del formulario}."));
     c.appendChild(box);
     var go=el("div","links");
