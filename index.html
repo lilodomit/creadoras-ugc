@@ -229,7 +229,7 @@ function render(){
   if(r.bio)c.appendChild(el("p","bio",r.bio));
   var links=el("div","links");
   if(r.reel)links.appendChild(link(r.reel,"Abrir reel en Instagram",true));
-  if(r.portfolio)links.appendChild(link(r.portfolio,"Ver portafolio",true));
+  if(r.portfolio)links.appendChild(link(r.portfolio,/beacons\.ai|linktr\.ee|taplink|canva\.site|notion\.site|carrd\.co|\.my\.canva/i.test(r.portfolio)||!/tiktok\.com|youtube\.com|youtu\.be|temu\.to|wa\.me|amazon\./i.test(r.portfolio)?"Ver portafolio":"Ver liga de su bio",true));
   if(r.ig)links.appendChild(link("https://www.instagram.com/"+encodeURIComponent(r.ig)+"/","Ver perfil completo"));
   r.samples.forEach(function(u,i){links.appendChild(link(u,"Video de muestra "+(i+1)))});
   var code=reelCode(r.reel||r.samples[0]);
