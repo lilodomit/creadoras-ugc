@@ -104,7 +104,6 @@ dialog h2{margin:0;font-size:18px}
     <label>Nombre<input id="f-name" autocomplete="off" placeholder="Como le dirías en el mensaje"></label>
     <label>Perfil<select id="f-profile"></select></label>
     <label>Liga de un reel donde habla a cámara<input id="f-reel" autocomplete="off" placeholder="https://www.instagram.com/reel/..."></label>
-    <label>¿De qué habla ese reel?<input id="f-topic" autocomplete="off" placeholder="tu rutina de skincare"></label>
     <div class="banner err" id="f-err" hidden></div>
     <div class="decide"><button type="button" id="f-cancel">Cancelar</button><button class="solid" type="submit">Agregar</button></div>
   </form>
@@ -161,7 +160,7 @@ function norm(pg){
     brands:txt(r["Marcas con las que ha trabajado"]),bio:txt(r["Bio"]),portfolio:firstUrl(r["Portafolio"]&&r["Portafolio"].url),notes:txt(r["Comentarios"]),review:sel(r["Revisión"]),wa:String((r["WhatsApp"]&&r["WhatsApp"].phone_number)||"").replace(/[^\d]/g,"")}
 }
 function sample(){
-  profiles={p1:{name:"Mujer 25 a 34",dm:"Hola {nombre}, ¿cómo estás? Soy Dani, de Twins & Icons.\n\nVi tu video de {tema del reel} y me gustó mucho cómo hablas a cámara 🌟\n\n¿Te interesaría trabajar con nosotros? 🤍",fu:"Hola {nombre}, te escribí hace unos días 😊\n===\n{nombre}, último mensaje 🙈\n\nAquí el formulario: {link del formulario}"}};
+  profiles={p1:{name:"Mujer 25 a 34",dm:"Hola {nombre}, ¿cómo estás? Soy Dani, de Twins & Icons.\n\nVi tus videos y me encantó tu contenido 🌟 ¿Te interesaría trabajar con nosotros? 🤍",fu:"Hola {nombre}, te escribí hace unos días 😊\n===\n{nombre}, último mensaje 🙈\n\nAquí el formulario: {link del formulario}"}};
   rows=[{id:"a",name:"Ejemplo Uno",ig:"ejemplo.uno",stage:"Encontrada",origin:"Equipo",profile:"p1",reel:"https://www.instagram.com/reel/DNvmKMx0AUg/",topic:"tu colección de perfumes",followers:5200,follows:0,samples:[],bio:"Creadora UGC 🇲🇽 CDMX\nBelleza y lifestyle",portfolio:"https://example.com/portafolio"},
         {id:"b",name:"Ejemplo Dos",ig:"ejemplo.dos",stage:"Aplicó",origin:"Convocatoria",profile:"p1",age:31,city:"CDMX, Roma",partner:true,kids:false,colab:"Sí",invoice:"No",samples:["https://www.instagram.com/"],follows:0,wa:"5215500000000"},
         {id:"c",name:"Ejemplo Tres",ig:"ejemplo.tres",stage:"Aprobada (DM enviado)",origin:"Búsqueda",profile:"p1",dm:"2020-01-01",follows:0,samples:[]}];
@@ -248,17 +247,16 @@ function render(){
     var pn=el("span","saved");ps.addEventListener("change",function(){if(ps.value)save(r,{"Perfil":[ps.value]},{profile:ps.value},pn)});pl.appendChild(ps);pl.appendChild(pn);c.appendChild(pl);
     var cl=el("label",null,"Comentarios (solo los ve el equipo)"),ta=el("textarea"),cn=el("span","saved");ta.id="notas";ta.value=r.notes||"";ta.placeholder="Por ejemplo: buena a cámara, pero parece menor de 25";
     ta.addEventListener("input",function(){r.notes=ta.value});ta.addEventListener("change",function(){save(r,{"Comentarios":ta.value.trim()},{notes:ta.value.trim()},cn)});cl.appendChild(ta);cl.appendChild(cn);c.appendChild(cl);
-    var lab=el("label",null,"¿De qué habla su reel? Va dentro del segundo mensaje");var inp=el("input");inp.id="topic";inp.value=r.topic||"";inp.placeholder="tu rutina de la mañana";
-    inp.addEventListener("input",function(){r.topic=inp.value});lab.appendChild(inp);c.appendChild(lab);
+
   }
   if(reveal===r.id){
     var box=el("div","msgs"),texts,labelBase="Mensaje ";
-    if(tab==="found")texts=parts(fill(prof.dm,r));
+    if(tab==="found")texts=[fill(prof.dm,r)].filter(Boolean);
     else if(tab==="applied"){texts=OFFER.map(function(t){return fill(t,r)})}
-    else{var seg=prof.fu.split(/\n===\n/);texts=parts(fill(seg[Math.min(r.follows,seg.length-1)]||"",r))}
+    else{var seg=prof.fu.split(/\n===\n/);texts=[fill(seg[Math.min(r.follows,seg.length-1)]||"",r)].filter(Boolean)}
     if(!texts.length)box.appendChild(el("div","banner err","Este perfil no tiene mensaje cargado en Notion."));
     var chatUrl=(tab!=="applied"&&r.ig)?"https://ig.me/m/"+encodeURIComponent(r.ig):"";
-    texts.forEach(function(t,i){box.appendChild(msgBlock(labelBase+(i+1)+" de "+texts.length,t,chatUrl))});
+    texts.forEach(function(t,i){box.appendChild(msgBlock(texts.length>1?labelBase+(i+1)+" de "+texts.length:"Mensaje",t,chatUrl))});
     if(texts.join(" ").indexOf("{link")>=0)box.appendChild(el("div","banner","Falta la liga del formulario: todavía no está abierto. Pégala a mano donde dice {link del formulario}."));
     c.appendChild(box);
     var go=el("div","links");
@@ -268,7 +266,7 @@ function render(){
     var d2=el("div","decide"),back=el("button",null,"Regresar"),sent=el("button","solid","Ya los mandé");back.type=sent.type="button";
     back.onclick=function(){reveal=null;render()};
     sent.onclick=function(){
-      if(tab==="found")update(r,{"Etapa":"Aprobada (DM enviado)","Revisión":"","date:Fecha DM:start":today(),"date:Fecha DM:is_datetime":0,"Seguimientos":0,"Tema del reel":r.topic||""},{stage:"Aprobada (DM enviado)",review:"",dm:today(),follows:0});
+      if(tab==="found")update(r,{"Etapa":"Aprobada (DM enviado)","Revisión":"","date:Fecha DM:start":today(),"date:Fecha DM:is_datetime":0,"Seguimientos":0},{stage:"Aprobada (DM enviado)",review:"",dm:today(),follows:0});
       else if(tab==="applied")update(r,{"Etapa":"Aprobada con formulario"},{stage:"Aprobada con formulario"});
       else update(r,{"Seguimientos":r.follows+1},{follows:r.follows+1});
     };
@@ -316,7 +314,7 @@ $("addform").addEventListener("submit",function(e){
   var raw=$("f-ig").value.trim(),m=raw.match(/instagram\.com\/([A-Za-z0-9._]+)/),ig=(m?m[1]:raw).replace(/^@/,"").replace(/\/$/,"");
   if(!/^[A-Za-z0-9._]{1,30}$/.test(ig)){err.textContent="No reconozco ese usuario. Pega la liga de su perfil o escribe @usuario.";err.hidden=false;return}
   if(rows.some(function(r){return (r.ig||"").toLowerCase()===ig.toLowerCase()})){err.textContent="@"+ig+" ya está en la base. No se duplicó.";err.hidden=false;return}
-  var reel=firstUrl($("f-reel").value),name=$("f-name").value.trim()||ig,pk=$("f-profile").value,topic=$("f-topic").value.trim();
+  var reel=firstUrl($("f-reel").value),name=$("f-name").value.trim()||ig,pk=$("f-profile").value,topic="";
   var props={"Nombre":name,"Usuario IG":ig,"Etapa":"Encontrada","Origen":"Equipo","Carril":"UGC","Seguimientos":0};
   if(reel)props["Reel de muestra"]=reel;if(topic)props["Tema del reel"]=topic;if(pk)props["Perfil"]=[pk];
   var done=function(id){rows.push({id:id||("tmp"+Date.now()),name:name,ig:ig,stage:"Encontrada",origin:"Equipo",profile:pk,reel:reel,topic:topic,follows:0,samples:[]});$("dlg").close();tab="found";idx=list("found").length-1;render()};
