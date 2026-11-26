@@ -26,7 +26,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;fl
 h1{font-size:15px;letter-spacing:.14em;text-transform:uppercase;margin:0;font-weight:700}
 .head-actions{display:flex;gap:8px}
 button,.btn{font:inherit;cursor:pointer;border:1px solid var(--ink);background:var(--surface);color:var(--ink);padding:10px 14px;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 button.solid,.btn.solid{background:var(--ink);color:var(--surface)}
 button.ghost{border-color:var(--line);color:var(--muted);padding:8px 10px;font-size:14px}
 button:disabled{opacity:.45;cursor:default}
@@ -49,9 +49,18 @@ dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:1
 dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 .links{display:flex;gap:8px;flex-wrap:wrap}
 label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-input,select{font:inherit;padding:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;width:100%}
+input,select,textarea{font:inherit;padding:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;width:100%}
 .decide{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .decide button{padding:16px;font-size:17px;font-weight:700}
+.decide.three{grid-template-columns:1fr 1fr 1.5fr}
+.decide.three button{padding:14px 6px;font-size:15px}
+.decide .maybe{border-color:var(--warn);color:var(--warn)}
+textarea{resize:vertical;min-height:64px}
+.bio{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;border-left:2px solid var(--line);padding-left:10px}
+.subs{display:flex;gap:6px;flex-wrap:wrap}
+.subs button{padding:6px 10px;font-size:13px;border-color:var(--line);color:var(--muted)}
+.subs button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:700}
+.saved{font-size:12px;color:var(--muted);min-height:1em}
 .decide .no{border-color:var(--no);color:var(--no)}
 .decide .yes{background:var(--yes);border-color:var(--yes);color:#fff}
 .msgs{display:flex;flex-direction:column;gap:10px}
@@ -112,7 +121,7 @@ var FORM_URL="https://n8n-n8n.0vynwh.easypanel.host/form/creadoras-twins"; // fo
 var OFFER=["Hola {nombre}, te escribo de parte del equipo de influencer marketing de Twins & Icons. Gracias por llenar el formulario 🙌",
 "Estamos super emocionados de trabajar contigo. Te cuento un poco sobre la propuesta:\n• 3 videos de 30 a 45 segundos, cada uno con 3 inicios distintos\n• Te mandamos 3 perfumes de la marca (valen cerca de $3,000)\n• Los videos son para pautar en Meta Ads de Twins & Icons\n¿Qué opinas?"];
 
-var token="", live=false, rows=[], profiles={}, tab="found", idx=0, reveal=null, busy=false;
+var token="", live=false, rows=[], profiles={}, tab="found", sub="new", idx=0, reveal=null, busy=false;
 var $=function(id){return document.getElementById(id)};
 function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
 function unesc(s){return typeof s==="string"?s.replace(/\\([\\_*~`\[\]()#>+\-.!|{}])/g,"$1"):s}
@@ -133,8 +142,9 @@ function txt(p){if(!p)return"";var a=p.title||p.rich_text;return Array.isArray(a
 function sel(p){return p&&p.select?p.select.name:""}
 function toRest(props){var o={};Object.keys(props).forEach(function(k){var v=props[k];
   if(k==="Nombre")o[k]={title:[{text:{content:String(v)}}]};
-  else if(k==="Usuario IG"||k==="Tema del reel")o[k]={rich_text:v?[{text:{content:String(v)}}]:[]};
+  else if(k==="Usuario IG"||k==="Tema del reel"||k==="Comentarios")o[k]={rich_text:v?[{text:{content:String(v)}}]:[]};
   else if(k==="Etapa"||k==="Origen"||k==="Carril")o[k]={select:{name:v}};
+  else if(k==="Revisión")o[k]={select:v?{name:v}:null};
   else if(k==="Seguimientos")o[k]={number:Number(v)};
   else if(k==="Reel de muestra")o[k]={url:v||null};
   else if(k==="date:Fecha DM:start")o["Fecha DM"]={date:{start:v}};
@@ -148,11 +158,11 @@ function norm(pg){
     followers:r["Seguidores"]&&r["Seguidores"].number,dm:(r["Fecha DM"]&&r["Fecha DM"].date&&r["Fecha DM"].date.start)||"",follows:Number((r["Seguimientos"]&&r["Seguimientos"].number)||0),
     age:r["Edad"]&&r["Edad"].number,city:txt(r["Ciudad y zona"]),partner:!!(r["Pareja"]&&r["Pareja"].checkbox),kids:!!(r["Hijos"]&&r["Hijos"].checkbox),
     colab:sel(r["Abierta a colab"]),invoice:sel(r["Emite factura"]),samples:samples.filter(function(u,i,a){return a.indexOf(u)===i}),
-    brands:txt(r["Marcas con las que ha trabajado"]),wa:String((r["WhatsApp"]&&r["WhatsApp"].phone_number)||"").replace(/[^\d]/g,"")}
+    brands:txt(r["Marcas con las que ha trabajado"]),bio:txt(r["Bio"]),portfolio:firstUrl(r["Portafolio"]&&r["Portafolio"].url),notes:txt(r["Comentarios"]),review:sel(r["Revisión"]),wa:String((r["WhatsApp"]&&r["WhatsApp"].phone_number)||"").replace(/[^\d]/g,"")}
 }
 function sample(){
   profiles={p1:{name:"Mujer 25 a 34",dm:"Hola {nombre}, ¿cómo estás? Soy Dani, de Twins & Icons.\n\nVi tu video de {tema del reel} y me gustó mucho cómo hablas a cámara 🌟\n\n¿Te interesaría trabajar con nosotros? 🤍",fu:"Hola {nombre}, te escribí hace unos días 😊\n===\n{nombre}, último mensaje 🙈\n\nAquí el formulario: {link del formulario}"}};
-  rows=[{id:"a",name:"Ejemplo Uno",ig:"ejemplo.uno",stage:"Encontrada",origin:"Equipo",profile:"p1",reel:"https://www.instagram.com/reel/DNvmKMx0AUg/",topic:"tu colección de perfumes",followers:5200,follows:0,samples:[]},
+  rows=[{id:"a",name:"Ejemplo Uno",ig:"ejemplo.uno",stage:"Encontrada",origin:"Equipo",profile:"p1",reel:"https://www.instagram.com/reel/DNvmKMx0AUg/",topic:"tu colección de perfumes",followers:5200,follows:0,samples:[],bio:"Creadora UGC 🇲🇽 CDMX\nBelleza y lifestyle",portfolio:"https://example.com/portafolio"},
         {id:"b",name:"Ejemplo Dos",ig:"ejemplo.dos",stage:"Aplicó",origin:"Convocatoria",profile:"p1",age:31,city:"CDMX, Roma",partner:true,kids:false,colab:"Sí",invoice:"No",samples:["https://www.instagram.com/"],follows:0,wa:"5215500000000"},
         {id:"c",name:"Ejemplo Tres",ig:"ejemplo.tres",stage:"Aprobada (DM enviado)",origin:"Búsqueda",profile:"p1",dm:"2020-01-01",follows:0,samples:[]}];
 }
@@ -165,8 +175,11 @@ function load(){
   }).catch(function(e){if(e.status===401){live=false;token="";try{localStorage.removeItem(KEY)}catch(x){}}
     banner("No pude leer Notion: "+errText(e)+".",true);rows=[];render()});
 }
+function found(k){return rows.filter(function(r){if(r.stage!=="Encontrada")return false;var v=r.review||"";return k==="all"?true:k==="maybe"?v==="Tal vez":k==="liked"?v==="Aprobada":!v})}
+function save(r,props,local,note){Object.assign(r,local);if(!live){if(note)note.textContent="Datos de ejemplo: no se guardó.";return Promise.resolve()}
+  if(note)note.textContent="Guardando…";return api("PATCH","/pages/"+r.id,{properties:toRest(props)}).then(function(){if(note)note.textContent="Guardado"},function(e){if(note)note.textContent="No se guardó: "+errText(e);banner("No se guardó en Notion: "+errText(e)+".",true)})}
 function list(t){
-  if(t==="found")return rows.filter(function(r){return r.stage==="Encontrada"});
+  if(t==="found")return found(sub);
   if(t==="applied")return rows.filter(function(r){return r.stage==="Aplicó"});
   return rows.filter(function(r){if(r.stage!=="Aprobada (DM enviado)")return false;var d=daysSince(r.dm);return (r.follows===0&&d>=4)||(r.follows===1&&d>=8)||(r.follows>=2&&d>=12)});
 }
@@ -197,11 +210,13 @@ function update(r,props,local,okMsg){
          function(e){busy=false;Object.assign(r,before);banner("No se guardó en Notion: "+errText(e)+". Intenta otra vez.",true);render()});
 }
 function render(){
-  ["found","applied","follow"].forEach(function(t){$("n-"+t).textContent=list(t).length});
+  $("n-found").textContent=found("new").length;["applied","follow"].forEach(function(t){$("n-"+t).textContent=list(t).length});
   document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-selected",String(b.dataset.tab===tab))});
-  var main=$("main");main.textContent="";var items=list(tab);
+  var main=$("main");main.textContent="";
+  if(tab==="found"){var sb=el("div","subs");[["new","Por revisar"],["maybe","Tal vez"],["liked","Aprobadas sin mensaje"]].forEach(function(p){var b=el("button",null,p[1]+" · "+found(p[0]).length);b.type="button";b.setAttribute("aria-pressed",String(sub===p[0]));b.onclick=function(){sub=p[0];idx=0;reveal=null;render()};sb.appendChild(b)});main.appendChild(sb)}
+  var items=list(tab);
   if(idx>=items.length)idx=Math.max(0,items.length-1);
-  if(!items.length){main.appendChild(el("div","empty",tab==="found"?"No hay candidatas por revisar. Agrega una con el botón + Candidata.":tab==="applied"?"Nadie ha llenado el formulario todavía.":"Nadie por recontactar hoy."));return}
+  if(!items.length){main.appendChild(el("div","empty",tab==="found"?(sub==="new"?"No hay candidatas por revisar. Agrega una con el botón + Candidata.":sub==="maybe"?"No hay ninguna en Tal vez.":"No hay aprobadas pendientes de mensaje."):tab==="applied"?"Nadie ha llenado el formulario todavía.":"Nadie por recontactar hoy."));return}
   var r=items[idx],prof=profiles[r.profile]||{name:"Sin perfil",dm:"",fu:""};
   var pos=el("div","pos");pos.appendChild(el("span",null,(idx+1)+" de "+items.length));
   var nav=el("span");var pv=el("button","ghost","Anterior"),nx=el("button","ghost","Siguiente");pv.type=nx.type="button";
@@ -210,9 +225,11 @@ function render(){
   var c=el("div","card");c.id="card";
   var who=el("div","who");who.appendChild(el("div","name",r.name||"@"+r.ig));if(r.ig)who.appendChild(el("div","handle","@"+r.ig));c.appendChild(who);
   var chips=el("div","chips");chips.appendChild(el("span","chip strong",prof.name));if(r.origin)chips.appendChild(el("span","chip",r.origin));
-  if(r.followers)chips.appendChild(el("span","chip",Number(r.followers).toLocaleString("es-MX")+" seguidores"));c.appendChild(chips);
+  if(r.followers)chips.appendChild(el("span","chip",Number(r.followers).toLocaleString("es-MX")+" seguidores"));if(tab==="found"&&r.review)chips.appendChild(el("span","chip strong",r.review));c.appendChild(chips);
+  if(r.bio)c.appendChild(el("p","bio",r.bio));
   var links=el("div","links");
   if(r.reel)links.appendChild(link(r.reel,"Abrir reel en Instagram",true));
+  if(r.portfolio)links.appendChild(link(r.portfolio,"Ver portafolio",true));
   if(r.ig)links.appendChild(link("https://www.instagram.com/"+encodeURIComponent(r.ig)+"/","Ver perfil completo"));
   r.samples.forEach(function(u,i){links.appendChild(link(u,"Video de muestra "+(i+1)))});
   var code=reelCode(r.reel||r.samples[0]);
@@ -225,6 +242,12 @@ function render(){
     c.appendChild(dl);
   }
   if(tab==="found"&&reveal!==r.id){
+    var pl=el("label",null,"Perfil (edad que aparenta en el video). Define qué mensaje se le manda"),ps=el("select");ps.id="perfil";
+    if(!profiles[r.profile]){var o0=el("option",null,"Sin perfil");o0.value="";ps.appendChild(o0)}
+    Object.keys(profiles).sort(function(a,b){return profiles[a].name.localeCompare(profiles[b].name)}).forEach(function(k){var o=el("option",null,profiles[k].name);o.value=k;if(k===r.profile)o.selected=true;ps.appendChild(o)});
+    var pn=el("span","saved");ps.addEventListener("change",function(){if(ps.value)save(r,{"Perfil":[ps.value]},{profile:ps.value},pn)});pl.appendChild(ps);pl.appendChild(pn);c.appendChild(pl);
+    var cl=el("label",null,"Comentarios (solo los ve el equipo)"),ta=el("textarea"),cn=el("span","saved");ta.id="notas";ta.value=r.notes||"";ta.placeholder="Por ejemplo: buena a cámara, pero parece menor de 25";
+    ta.addEventListener("input",function(){r.notes=ta.value});ta.addEventListener("change",function(){save(r,{"Comentarios":ta.value.trim()},{notes:ta.value.trim()},cn)});cl.appendChild(ta);cl.appendChild(cn);c.appendChild(cl);
     var lab=el("label",null,"¿De qué habla su reel? Va dentro del segundo mensaje");var inp=el("input");inp.id="topic";inp.value=r.topic||"";inp.placeholder="tu rutina de la mañana";
     inp.addEventListener("input",function(){r.topic=inp.value});lab.appendChild(inp);c.appendChild(lab);
   }
@@ -245,7 +268,7 @@ function render(){
     var d2=el("div","decide"),back=el("button",null,"Regresar"),sent=el("button","solid","Ya los mandé");back.type=sent.type="button";
     back.onclick=function(){reveal=null;render()};
     sent.onclick=function(){
-      if(tab==="found")update(r,{"Etapa":"Aprobada (DM enviado)","date:Fecha DM:start":today(),"date:Fecha DM:is_datetime":0,"Seguimientos":0,"Tema del reel":r.topic||""},{stage:"Aprobada (DM enviado)",dm:today(),follows:0});
+      if(tab==="found")update(r,{"Etapa":"Aprobada (DM enviado)","Revisión":"","date:Fecha DM:start":today(),"date:Fecha DM:is_datetime":0,"Seguimientos":0,"Tema del reel":r.topic||""},{stage:"Aprobada (DM enviado)",review:"",dm:today(),follows:0});
       else if(tab==="applied")update(r,{"Etapa":"Aprobada con formulario"},{stage:"Aprobada con formulario"});
       else update(r,{"Seguimientos":r.follows+1},{follows:r.follows+1});
     };
@@ -259,23 +282,24 @@ function render(){
       no.onclick=function(){update(r,{"Etapa":"Sin respuesta"},{stage:"Sin respuesta"})};
       ok.onclick=last?function(){banner("Si ya contestó, mándale el formulario. Saldrá de esta lista cuando lo llene.")}:function(){reveal=r.id;render()};
     }else{
-      no.textContent="No";ok.textContent=tab==="found"?"Aprobar y ver mensajes":"Aprobar";
+      no.textContent="No";ok.textContent="Aprobar";
       no.onclick=function(){update(r,{"Etapa":"Descartada"},{stage:"Descartada"})};
-      ok.onclick=tab==="found"?function(){reveal=r.id;render()}:function(){update(r,{"Etapa":"Aprobada con formulario"},{stage:"Aprobada con formulario"},"Aprobada. El sistema le escribe por WhatsApp en unos minutos.")};
+      if(tab==="found"){d.className="decide three";var mb=el("button","maybe",r.review==="Tal vez"?"Sigue en Tal vez":"Tal vez");mb.type="button";mb.id="btn-maybe";mb.disabled=r.review==="Tal vez";mb.onclick=function(){update(r,{"Revisión":"Tal vez"},{review:"Tal vez"})};d.appendChild(no);d.appendChild(mb);d.appendChild(ok);ok.textContent=r.review==="Aprobada"?"Ver mensajes":"Aprobar"}
+      ok.onclick=tab==="found"?function(){if(r.review==="Aprobada"){reveal=r.id;render();return}save(r,{"Revisión":"Aprobada"},{review:"Aprobada"});sub="liked";idx=Math.max(0,found("liked").indexOf(r));reveal=r.id;render()}:function(){update(r,{"Etapa":"Aprobada con formulario"},{stage:"Aprobada con formulario"},"Aprobada. El sistema le escribe por WhatsApp en unos minutos.")};
     }
-    d.appendChild(no);d.appendChild(ok);c.appendChild(d);
+    if(tab!=="found"){d.appendChild(no);d.appendChild(ok)}c.appendChild(d);
   }
   main.appendChild(c);swipe(c);
 }
 function swipe(c){
   var x0=null,dx=0;
-  c.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"||e.target.closest("button,a,input,.msg"))return;x0=e.clientX;dx=0});
+  c.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"||e.target.closest("button,a,input,select,textarea,.msg"))return;x0=e.clientX;dx=0});
   c.addEventListener("pointermove",function(e){if(x0===null)return;dx=e.clientX-x0;if(Math.abs(dx)>12)c.style.transform="translateX("+dx+"px) rotate("+(dx/40)+"deg)"});
   var end=function(){if(x0===null)return;x0=null;c.style.transform="";if(reveal)return;if(dx>110){var y=$("btn-yes");if(y)y.click()}else if(dx<-110&&tab!=="follow"){var n=$("btn-no");if(n)n.click()}};
   c.addEventListener("pointerup",end);c.addEventListener("pointercancel",end);
 }
 document.addEventListener("keydown",function(e){
-  if(e.target.closest("input,select,dialog")||reveal)return;
+  if(e.target.closest("input,select,textarea,dialog")||reveal)return;
   if(e.key==="ArrowRight"){var y=$("btn-yes");if(y)y.click()}
   if(e.key==="ArrowLeft"&&tab!=="follow"){var n=$("btn-no");if(n)n.click()}
 });
