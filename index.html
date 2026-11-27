@@ -43,6 +43,7 @@ body.m .chip.ok{background:#0f2e1e;color:#4ade80}
 .bio{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
 .links{display:flex;gap:8px;flex-wrap:wrap}
 .links a{font-size:14px;font-weight:600}
+.pills{gap:6px}.pills a{text-decoration:none;background:var(--card2);border-radius:999px;padding:0 12px;min-height:36px;display:inline-flex;align-items:center;font-size:13px}
 .banner{padding:10px 14px;border-radius:12px;background:var(--warnbg);color:var(--warn);font-size:14px}
 .banner.err{background:var(--nobg);color:var(--no)}
 .empty{padding:48px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
@@ -288,6 +289,7 @@ function linksFor(r){var l=[];
   if(r.reel)l.push(h("a",{href:r.reel,target:"_blank",rel:"noopener",text:"Abrir reel ↗"}));
   (r.samples||[]).forEach(function(u,i){l.push(h("a",{href:u,target:"_blank",rel:"noopener",text:"Video "+(i+1)+" ↗"}))});
   return h("div",{class:"links"},l)}
+function pillLinks(el){el.classList.add("pills");return el}
 function profKeys(){return Object.keys(profiles).sort(function(a,b){var A=profiles[a].name,B=profiles[b].name,ma=/^mujer/i.test(A)?0:1,mb=/^mujer/i.test(B)?0:1;return ma-mb||A.localeCompare(B)})}
 function profilePicker(r,keys){var ks=profKeys();
   return h("div",{class:"profiles",role:"group","aria-label":"Perfil"},ks.map(function(k,i){return h("button",{type:"button","aria-pressed":String(k===r.profile),onclick:function(){setProfile(r,k)}},[keys&&i<9?h("span",{class:"kbd",text:String(i+1)}):null,profiles[k].name])}))}
@@ -334,11 +336,10 @@ function mDecide(w,c){
   var r=list[idx],card=h("div",{class:"mcard",id:"card"});
   card.appendChild(h("div",{class:"info",style:"padding-bottom:12px"},[
     h("div",null,[h("div",{class:"name",text:r.name||"@"+r.ig}),r.ig?h("div",{class:"small muted",text:"@"+r.ig+(city(r)?" · "+city(r):"")}):null]),
-    chipsFor(r,true),r.bio?h("p",{class:"bio clamp",text:r.bio}):null]));
+    pillLinks(linksFor(r)),chipsFor(r,true),r.bio?h("p",{class:"bio clamp",text:r.bio}):null]));
   card.appendChild(reel(r));
   var info=h("div",{class:"info"},[
     h("span",{class:"small muted",text:"Perfil que aparenta (define el mensaje)"}),profilePicker(r,false),
-    linksFor(r),
     noteOpen||r.notes?noteBox(r):h("button",{type:"button",onclick:function(){noteOpen=true;render();var n=$("nota");if(n)n.focus()},text:"+ Nota para el equipo"})]);
   card.appendChild(info);w.appendChild(card);swipe(card);
 }
